@@ -33,6 +33,7 @@ class _DemoPageState extends State<DemoPage> {
   DateTime? returnDate;
   DateTime? limited;
   DateTime? teal;
+  DateTime? bordered;
 
   @override
   Widget build(BuildContext context) {
@@ -115,17 +116,50 @@ class _DemoPageState extends State<DemoPage> {
                         ],
                       ),
                       const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          // Border colors straight from the call site: grey at
+                          // rest, orange on focus (the glow follows it).
+                          Expanded(
+                            child: WebDateField(
+                              'Custom border',
+                              tab: 5,
+                              value: bordered,
+                              borderColor: const Color(0xFFD1D5DB),
+                              focusedBorderColor: const Color(0xFFEA580C),
+                              onChanged: (d) => setState(() => bordered = d),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: WebDateField(
+                              'Thick border',
+                              tab: 6,
+                              value: bordered,
+                              borderColor: const Color(0xFF94A3B8),
+                              focusedBorderColor: const Color(0xFF1D4ED8),
+                              borderWidth: 2,
+                              focusedBorderWidth: 3,
+                              onChanged: (d) => setState(() => bordered = d),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
                       WebDateField(
                         'Disabled',
-                        tab: 5,
+                        tab: 7,
                         enabled: false,
                         value: DateTime(2026, 1, 1),
+                        borderColor: const Color(0xFFD1D5DB),
+                        disabledBorderColor: const Color(0xFFE5E7EB),
                         onChanged: (_) {},
                       ),
                       const SizedBox(height: 24),
                       Text(
                         'Date: $pickUpDate\nR/Date: $returnDate\n'
-                        'Limited: $limited\nTeal: $teal',
+                        'Limited: $limited\nTeal: $teal\n'
+                        'Bordered: $bordered',
                         style: const TextStyle(
                             fontSize: 12, color: Colors.black54, height: 1.6),
                       ),

@@ -18,6 +18,11 @@ class WebDatePickerStyle {
     this.labelColor = Colors.black,
     this.panelColor = Colors.white,
     this.panelBorderColor = const Color(0xFFE5E7EB),
+    this.borderColor,
+    this.focusedBorderColor,
+    this.disabledBorderColor,
+    this.borderWidth = 1,
+    this.focusedBorderWidth = 2,
     this.dayTextColor = Colors.black87,
     this.selectedDayTextColor = Colors.white,
     this.disabledDayColor = const Color(0xFFBDBDBD),
@@ -65,6 +70,22 @@ class WebDatePickerStyle {
   final Color labelColor;
   final Color panelColor;
   final Color panelBorderColor;
+
+  /// Field outline while unfocused. Null keeps the Material default.
+  final Color? borderColor;
+
+  /// Field outline while focused or open. Null falls back to [accent].
+  final Color? focusedBorderColor;
+
+  /// Field outline while `enabled: false`. Null keeps the Material
+  /// default (a faded version of the theme outline).
+  final Color? disabledBorderColor;
+
+  /// Outline thickness while unfocused / disabled.
+  final double borderWidth;
+
+  /// Outline thickness while focused or open.
+  final double focusedBorderWidth;
   final Color dayTextColor;
   final Color selectedDayTextColor;
 
@@ -115,9 +136,42 @@ class WebDatePickerStyle {
   TextStyle get labelTextStyle =>
       TextStyle(fontSize: labelFontSize, color: labelColor);
 
+  /// Color the focus ring / halo and the focused outline share.
+  Color get effectiveFocusedBorderColor => focusedBorderColor ?? accent;
+
+  /// Stamp [borderColor] / [focusedBorderColor] / [disabledBorderColor] onto
+  /// any decoration, including one a call site passed in. A null color leaves
+  /// that state's border untouched so Material's default still applies.
+  InputDecoration applyBorders(InputDecoration decoration) {
+    final radius = BorderRadius.circular(borderRadius);
+    OutlineInputBorder border(Color color, double width) => OutlineInputBorder(
+          borderRadius: radius,
+          borderSide: BorderSide(color: color, width: width),
+        );
+
+    var result = decoration;
+    if (borderColor != null) {
+      result = result.copyWith(
+        border: border(borderColor!, borderWidth),
+        enabledBorder: border(borderColor!, borderWidth),
+      );
+    }
+    if (focusedBorderColor != null) {
+      result = result.copyWith(
+        focusedBorder: border(focusedBorderColor!, focusedBorderWidth),
+      );
+    }
+    if (disabledBorderColor != null) {
+      result = result.copyWith(
+        disabledBorder: border(disabledBorderColor!, borderWidth),
+      );
+    }
+    return result;
+  }
+
   /// The outlined, focus-tinted decoration the field uses when the call site
   /// does not pass a `decoration` of its own.
-  InputDecoration inputDecoration() => InputDecoration(
+  InputDecoration inputDecoration() => applyBorders(InputDecoration(
         isDense: true,
         contentPadding: contentPadding,
         // Resolved against the InputDecorator state set, so the focus tint
@@ -131,9 +185,12 @@ class WebDatePickerStyle {
             OutlineInputBorder(borderRadius: BorderRadius.circular(borderRadius)),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadius),
-          borderSide: BorderSide(color: accent, width: 2),
+          borderSide: BorderSide(
+            color: effectiveFocusedBorderColor,
+            width: focusedBorderWidth,
+          ),
         ),
-      );
+      ));
 
   /// Set once (e.g. in `main()`) to restyle every field in the app.
   static WebDatePickerStyle defaults = const WebDatePickerStyle();
@@ -152,6 +209,11 @@ class WebDatePickerStyle {
     Color? labelColor,
     Color? panelColor,
     Color? panelBorderColor,
+    Color? borderColor,
+    Color? focusedBorderColor,
+    Color? disabledBorderColor,
+    double? borderWidth,
+    double? focusedBorderWidth,
     Color? dayTextColor,
     Color? selectedDayTextColor,
     Color? disabledDayColor,
@@ -188,6 +250,12 @@ class WebDatePickerStyle {
         labelColor: labelColor ?? this.labelColor,
         panelColor: panelColor ?? this.panelColor,
         panelBorderColor: panelBorderColor ?? this.panelBorderColor,
+        borderColor: borderColor ?? this.borderColor,
+        focusedBorderColor: focusedBorderColor ?? this.focusedBorderColor,
+        disabledBorderColor:
+            disabledBorderColor ?? this.disabledBorderColor,
+        borderWidth: borderWidth ?? this.borderWidth,
+        focusedBorderWidth: focusedBorderWidth ?? this.focusedBorderWidth,
         dayTextColor: dayTextColor ?? this.dayTextColor,
         selectedDayTextColor: selectedDayTextColor ?? this.selectedDayTextColor,
         disabledDayColor: disabledDayColor ?? this.disabledDayColor,

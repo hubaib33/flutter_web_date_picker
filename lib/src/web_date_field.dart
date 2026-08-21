@@ -21,6 +21,19 @@ import 'web_date_picker_style.dart';
 /// Styling comes from [WebDatePickerStyle.of] — set
 /// [WebDatePickerStyle.defaults] once, or wrap the form in a
 /// [WebDatePickerTheme], and no call site needs colors or font sizes.
+///
+/// The outline is the one thing forms tend to vary per screen, so it is also
+/// available straight on the constructor:
+///
+/// ```dart
+/// WebDateField(
+///   'Date',
+///   value: date,
+///   onChanged: onChanged,
+///   borderColor: Colors.grey.shade300,   // unfocused
+///   focusedBorderColor: Colors.teal,     // focused / open (also the glow)
+/// )
+/// ```
 class WebDateField extends StatelessWidget {
   const WebDateField(
     this.label, {
@@ -29,6 +42,11 @@ class WebDateField extends StatelessWidget {
     required this.onChanged,
     this.tab,
     this.style,
+    this.borderColor,
+    this.focusedBorderColor,
+    this.disabledBorderColor,
+    this.borderWidth,
+    this.focusedBorderWidth,
     this.decoration,
     this.textStyle,
     this.firstDate,
@@ -54,6 +72,25 @@ class WebDateField extends StatelessWidget {
   final num? tab;
 
   final WebDatePickerStyle? style;
+
+  /// Outline color while the field is unfocused. Overrides
+  /// [WebDatePickerStyle.borderColor], so a call site can restyle just the
+  /// border without building a whole style.
+  final Color? borderColor;
+
+  /// Outline color while the field is focused or the calendar is open. Also
+  /// tints the focus glow. Overrides [WebDatePickerStyle.focusedBorderColor].
+  final Color? focusedBorderColor;
+
+  /// Outline color while `enabled: false`.
+  final Color? disabledBorderColor;
+
+  /// Outline thickness while unfocused / disabled.
+  final double? borderWidth;
+
+  /// Outline thickness while focused or open.
+  final double? focusedBorderWidth;
+
   final InputDecoration? decoration;
   final TextStyle? textStyle;
 
@@ -73,7 +110,20 @@ class WebDateField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final s = style ?? WebDatePickerStyle.of(context);
+    var s = style ?? WebDatePickerStyle.of(context);
+    if (borderColor != null ||
+        focusedBorderColor != null ||
+        disabledBorderColor != null ||
+        borderWidth != null ||
+        focusedBorderWidth != null) {
+      s = s.copyWith(
+        borderColor: borderColor,
+        focusedBorderColor: focusedBorderColor,
+        disabledBorderColor: disabledBorderColor,
+        borderWidth: borderWidth,
+        focusedBorderWidth: focusedBorderWidth,
+      );
+    }
 
     Widget field = CalendarDropdownField(
       label: label,
@@ -91,7 +141,11 @@ class WebDateField extends StatelessWidget {
     );
 
     if (s.glow) {
-      field = GlowFocus(radius: s.glowRadius, accent: s.accent, child: field);
+      field = GlowFocus(
+        radius: s.glowRadius,
+        accent: s.effectiveFocusedBorderColor,
+        child: field,
+      );
     }
     if (tab != null) {
       field = FocusTraversalOrder(

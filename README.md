@@ -32,7 +32,8 @@ focus glow and the Tab-order slot are all handled by the widget.
 - **Optional bounds.** `firstDate` / `lastDate` grey out and block days outside
   the range (both are optional; omit for an unbounded calendar).
 - **Themable end to end.** One `WebDatePickerStyle` object carries every color,
-  font size and metric.
+  font size and metric — and the focused / unfocused border colors can be
+  passed straight to the constructor.
 - **`Today` / `Close` footer**, `enabled: false` state, and a custom `format`
   callback.
 
@@ -92,6 +93,39 @@ Or per field: `WebDateField('Date', style: ..., ...)`.
 Resolution order is **`style:` argument → nearest `WebDatePickerTheme` →
 `WebDatePickerStyle.defaults`**.
 
+### Border colors
+
+The outline is the knob forms vary most, so it is on the constructor too — no
+style object needed:
+
+```dart
+WebDateField(
+  'Pick-up date',
+  value: date,
+  onChanged: onChanged,
+  borderColor: const Color(0xFFD1D5DB),      // unfocused
+  focusedBorderColor: const Color(0xFF0F766E), // focused / open
+  disabledBorderColor: const Color(0xFFE5E7EB),
+  borderWidth: 1,
+  focusedBorderWidth: 2,
+)
+```
+
+`focusedBorderColor` also tints the focus glow, so the halo and the outline stay
+in step. The same five knobs live on `WebDatePickerStyle` (and on
+`CalendarDropdownField`), so a whole app can be set once:
+
+```dart
+WebDatePickerStyle.defaults = const WebDatePickerStyle(
+  borderColor: Color(0xFFD1D5DB),
+  focusedBorderColor: Color(0xFF0F766E),
+);
+```
+
+Constructor arguments win over the style; leaving a color null keeps the
+previous behaviour (Material's default outline when unfocused, `accent` when
+focused). Border colors are applied even when you pass your own `decoration`.
+
 ## API
 
 | Symbol | Purpose |
@@ -114,6 +148,8 @@ Resolution order is **`style:` argument → nearest `WebDatePickerTheme` →
 | `format` | `dd / MM / yyyy` | `String Function(DateTime)`. |
 | `enabled` | `true` | False greys the field out and removes it from traversal. |
 | `style` / `decoration` / `textStyle` | `null` | Per-field overrides. |
+| `borderColor` / `focusedBorderColor` / `disabledBorderColor` | `null` | Outline per state; overrides the style. `focusedBorderColor` also tints the glow. |
+| `borderWidth` / `focusedBorderWidth` | `1` / `2` | Outline thickness (from the style unless passed). |
 | `autofocus` / `focusNode` | `false` / `null` | Standard focus plumbing. |
 | `topGap` | `4` | Space above the field, to line up with labelled siblings. |
 

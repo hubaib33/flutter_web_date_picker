@@ -27,6 +27,11 @@ class CalendarDropdownField extends StatefulWidget {
     this.decoration,
     this.textStyle,
     this.style,
+    this.borderColor,
+    this.focusedBorderColor,
+    this.disabledBorderColor,
+    this.borderWidth,
+    this.focusedBorderWidth,
     this.firstDate,
     this.lastDate,
     this.format,
@@ -52,6 +57,23 @@ class CalendarDropdownField extends StatefulWidget {
 
   /// Defaults to [WebDatePickerStyle.of] for this context.
   final WebDatePickerStyle? style;
+
+  /// Outline color while the field is unfocused. Overrides
+  /// [WebDatePickerStyle.borderColor]; null keeps whatever the style says.
+  final Color? borderColor;
+
+  /// Outline color while the field is focused or the calendar is open.
+  /// Overrides [WebDatePickerStyle.focusedBorderColor].
+  final Color? focusedBorderColor;
+
+  /// Outline color while `enabled: false`.
+  final Color? disabledBorderColor;
+
+  /// Outline thickness while unfocused / disabled.
+  final double? borderWidth;
+
+  /// Outline thickness while focused or open.
+  final double? focusedBorderWidth;
 
   /// Earliest selectable day (inclusive). Null means unbounded.
   final DateTime? firstDate;
@@ -106,8 +128,23 @@ class _CalendarDropdownFieldState extends State<CalendarDropdownField> {
       widget.focusNode ??
       (_ownedFieldFocus ??= FocusNode(debugLabel: 'dateField'));
 
-  WebDatePickerStyle get _style =>
-      widget.style ?? WebDatePickerStyle.of(context);
+  WebDatePickerStyle get _style {
+    final base = widget.style ?? WebDatePickerStyle.of(context);
+    if (widget.borderColor == null &&
+        widget.focusedBorderColor == null &&
+        widget.disabledBorderColor == null &&
+        widget.borderWidth == null &&
+        widget.focusedBorderWidth == null) {
+      return base;
+    }
+    return base.copyWith(
+      borderColor: widget.borderColor,
+      focusedBorderColor: widget.focusedBorderColor,
+      disabledBorderColor: widget.disabledBorderColor,
+      borderWidth: widget.borderWidth,
+      focusedBorderWidth: widget.focusedBorderWidth,
+    );
+  }
 
   @override
   void initState() {
@@ -328,9 +365,12 @@ class _CalendarDropdownFieldState extends State<CalendarDropdownField> {
         ? (highlight ? s.accent : s.idleColor)
         : s.disabledDayColor;
 
-    var decoration = (widget.decoration ?? s.inputDecoration()).copyWith(
-      enabled: widget.enabled,
-    );
+    var decoration = (widget.decoration == null
+            ? s.inputDecoration()
+            // A call-site decoration keeps its own borders unless the style (or
+            // this widget) names border colors explicitly.
+            : s.applyBorders(widget.decoration!))
+        .copyWith(enabled: widget.enabled);
     if (widget.label != null) {
       decoration = decoration.copyWith(
         label: Text(
